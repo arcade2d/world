@@ -1,3 +1,4 @@
+import { Vector } from '.';
 import { StepInfo } from './types';
 import { WorldObject } from './worldObject';
 
@@ -50,9 +51,11 @@ export class World {
    *
    * @param object The target object.
    */
-  public add<T extends WorldObject>(object: T): T {
+  public add<T extends WorldObject>(object: T, position?: Vector): T {
     if (!this.objects.has(object)) {
       this.objects.add(object);
+
+      position && object.position.set(position);
 
       try {
         object.onAdd(this);
@@ -120,6 +123,17 @@ export class World {
     this.removed.clear();
   }
 
+  /**
+   * Step through the world simulation. This method does the following in
+   * sequence:
+   *
+   * 1. Produces a new `StepInfo` instance with delta time calculated.
+   * 2. Calls the `step()` method on every world object within the world and
+   * passes down the `StepInfo` that was generated.
+   * 3. Calls `purge()` to clean up any objects that were marked for removal
+   * during the above stage.
+   * 4. Returns the `StepInfo`.
+   */
   public step(): StepInfo {
     const now = Date.now();
 
@@ -148,10 +162,17 @@ export class World {
     return info;
   }
 
+  /**
+   * Produces an array of all the objects currently in this world.
+   */
   public getObjects(): readonly WorldObject[] {
     return Array.from(this.objects);
   }
 
+  /**
+   * Produces an array of all the objects currently marked for removal from this
+   * world.
+   */
   public getRemovedObjects(): readonly WorldObject[] {
     return Array.from(this.removed);
   }

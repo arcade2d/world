@@ -1,3 +1,7 @@
+/**
+ * Stores information about the space between two calls to `step()` within a
+ * `World` instance.
+ */
 export type StepInfo = {
   /**
    * Unix timestamp that the previous step was triggered at.

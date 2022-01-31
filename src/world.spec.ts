@@ -1,4 +1,4 @@
-import { WorldObject } from '.';
+import { Vector, WorldObject } from '.';
 import { World } from './world';
 
 describe('World', () => {
@@ -68,6 +68,14 @@ describe('World', () => {
 
       expect(object.onAdd).toBeCalledTimes(1);
       expect(world.getObjects()).toHaveLength(1);
+    });
+
+    test('It should allow the addition of a world object at a specified location.', () => {
+      world.add(object, new Vector(10, 10));
+
+      expect(object.onAdd).toBeCalledTimes(1);
+      expect(object.position.x).toEqual(10);
+      expect(object.position.y).toEqual(10);
     });
   });
 });
