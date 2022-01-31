@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "DOM",
+      "ESNext",
+    ],
+    "target": "ES6",
+    "outDir": "./dist",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "declaration": true,
+    "noImplicitAny": true,
+    "skipLibCheck": false,
+    "strict": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
