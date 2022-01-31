@@ -1,5 +1,3 @@
-import { AbstractWorld } from './world';
-
-class World extends AbstractWorld {}
-
-const w = new World();
+export * from './types';
+export * from './world';
+export * from './worldObject';

@@ -1,8 +1,9 @@
 import { StepInfo } from './types';
-import { AbstractWorld } from './world';
+import { World } from './world';
 
-export abstract class AbstractWorldObject {
-  public abstract onAdded(world: AbstractWorld): void;
-  public abstract onRemoved(world: AbstractWorld): void;
-  public abstract step(world: AbstractWorld, info: StepInfo): void;
+export class WorldObject {
+  public onAdd(world: World): void {}
+  public onRemove(world: World): void {}
+  public onPurge(world: World): void {}
+  public step(world: World, info: StepInfo): void {}
 }

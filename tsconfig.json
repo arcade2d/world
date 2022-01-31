@@ -8,6 +8,7 @@
     "outDir": "./dist",
     "module": "ESNext",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "declaration": true,
     "noImplicitAny": true,
     "skipLibCheck": false,

@@ -1,50 +1,94 @@
 import { StepInfo } from './types';
-import { AbstractWorldObject } from './worldObject';
+import { WorldObject } from './worldObject';
+
+export type WorldOptions = {
+  readonly onAddError: (object: WorldObject, error: Error) => void;
+  readonly onRemoveError: (object: WorldObject, error: Error) => void;
+  readonly onPurgeError: (object: WorldObject, error: Error) => void;
+  readonly onStepError: (object: WorldObject, error: Error) => void;
+};
+
+const defaultOptionsFactory = (): WorldOptions => ({
+  onAddError: (object: WorldObject, error: Error) =>
+    console.error(
+      `Failed to call onAdd() hook for ${object}: ${error.message}`,
+    ),
+  onRemoveError: (object: WorldObject, error: Error) =>
+    console.error(
+      `Failed to call onRemove() hook for ${object}: ${error.message}`,
+    ),
+  onPurgeError: (object: WorldObject, error: Error) =>
+    console.error(
+      `Failed to call onPurge() hook for ${object}: ${error.message}`,
+    ),
+  onStepError: (object: WorldObject, error: Error) =>
+    console.error(`Failed to call step() hook for ${object}: ${error.message}`),
+});
 
 /**
  * The world contains all of your world objects and their components.
  */
-export abstract class AbstractWorld {
+export class World {
   private lastStep?: number;
 
-  private readonly objects: Set<AbstractWorldObject>;
-  private readonly removed: Set<AbstractWorldObject>;
+  private readonly options: WorldOptions;
+  private readonly objects: Set<WorldObject>;
+  private readonly removed: Set<WorldObject>;
 
-  constructor() {
+  constructor(options?: Partial<WorldOptions>) {
+    this.options = {
+      ...defaultOptionsFactory(),
+      ...options,
+    };
+
     this.objects = new Set();
     this.removed = new Set();
   }
 
   /**
-   * Adds an object to the world.
+   * Adds an object to the world. Invokes `onAdded` on the target object.
    *
    * @param object The target object.
    */
-  public add<T extends AbstractWorldObject>(object: T): T {
-    this.objects.add(object);
+  public add<T extends WorldObject>(object: T): T {
+    if (!this.objects.has(object)) {
+      this.objects.add(object);
 
-    object.onAdded(this);
+      try {
+        object.onAdd(this);
+      } catch (error: any) {
+        this.options.onAddError(object, error);
+      }
+    }
 
     return object;
   }
 
   /**
    * Flags the target object for removal at the conclusion of the next `step()`
-   * or explicit call to `purge()`.
+   * or explicit call to `purge()`. Invokes `onRemoved` on the target object.
    *
    * @param object The target object.
    */
-  public remove(object: AbstractWorldObject): void {
-    this.removed.add(object);
+  public remove(object: WorldObject): void {
+    if (!this.removed.has(object)) {
+      this.removed.add(object);
+
+      try {
+        object.onRemove(this);
+      } catch (error: any) {
+        this.options.onRemoveError(object, error);
+      }
+    }
   }
 
   /**
-   * Determine whether the target object will be removed at the conclusion of
+   * Determine whether the target object will be purged at the conclusion of
    * the next `step()` or explicit call to `purge()`.
    *
    * @param object The target object.
    */
-  public willRemove(object: AbstractWorldObject): boolean {
+  public willPurge(object: WorldObject): boolean {
     return this.removed.has(object);
   }
 
@@ -53,7 +97,7 @@ export abstract class AbstractWorld {
    *
    * @param object The target object.
    */
-  public contains(object: AbstractWorldObject): boolean {
+  public contains(object: WorldObject): boolean {
     return this.objects.has(object);
   }
 
@@ -64,7 +108,12 @@ export abstract class AbstractWorld {
     for (const object of this.removed) {
       if (this.objects.has(object)) {
         this.objects.delete(object);
-        object.onRemoved(this);
+
+        try {
+          object.onPurge(this);
+        } catch (error: any) {
+          this.options.onPurgeError(object, error);
+        }
       }
     }
 
@@ -82,7 +131,11 @@ export abstract class AbstractWorld {
 
     // Update all objects that belong to this world.
     for (const object of this.objects) {
-      object.step(this, info);
+      try {
+        object.step(this, info);
+      } catch (error: any) {
+        this.options.onStepError(object, error);
+      }
     }
 
     // Purge any objects that were marked for removal in the previous batch of
@@ -93,5 +146,13 @@ export abstract class AbstractWorld {
     this.lastStep = Date.now();
 
     return info;
+  }
+
+  public getObjects(): readonly WorldObject[] {
+    return Array.from(this.objects);
+  }
+
+  public getRemovedObjects(): readonly WorldObject[] {
+    return Array.from(this.removed);
   }
 }
