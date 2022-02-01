@@ -1,14 +1,17 @@
 {
   "name": "@arcade2d/world",
+  "version": "0.1.1",
   "description": "Provides components for composing and running a game world.",
   "license": "MIT",
+  "private": false,
   "author": "Marty Wallace <marty@martywallace.com>",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf lib && tsc",
     "lint": "eslint \"src/**/*.ts\" --fix",
-    "test": "jest src --verbose --collectCoverage"
+    "test": "jest src --verbose --collectCoverage",
+    "prepublish": "yarn build && yarn test"
   },
   "jest": {
     "moduleFileExtensions": [
