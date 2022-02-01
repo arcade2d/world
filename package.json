@@ -1,6 +1,6 @@
 {
   "name": "@arcade2d/world",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Provides components for composing and running a game world.",
   "license": "MIT",
   "private": false,
