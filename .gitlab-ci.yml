@@ -21,6 +21,7 @@ build:
 
 test:
   stage: test
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   cache:
     key: $CI_COMMIT_REF_NAME
     policy: pull
