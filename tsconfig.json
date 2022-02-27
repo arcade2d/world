@@ -5,7 +5,7 @@
       "ESNext",
     ],
     "target": "ES6",
-    "outDir": "./dist",
+    "outDir": "./lib",
     "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -19,6 +19,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "lib",
+    "**/*.spec.ts"
   ]
 }

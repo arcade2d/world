@@ -1,0 +1,39 @@
+image: node:16
+
+stages:
+  - build
+  - test
+  - publish
+
+build:
+  stage: build
+  artifacts:
+    paths:
+      - lib
+  cache:
+    key: $CI_COMMIT_REF_NAME
+    policy: push
+    paths:
+      - node_modules
+  script:
+    - yarn
+    - yarn build
+
+test:
+  stage: test
+  cache:
+    key: $CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules
+  script:
+    - yarn test
+
+publish:
+  stage: publish
+  script:
+    - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+    - npm version --no-git-tag-version $CI_COMMIT_TAG --allow-same-version
+    - npm publish
+  only:
+    - tags
