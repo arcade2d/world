@@ -12,7 +12,10 @@
     "declaration": true,
     "noImplicitAny": true,
     "skipLibCheck": false,
-    "strict": true
+    "strict": true,
+    "stripInternal": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "include": [
     "src"
