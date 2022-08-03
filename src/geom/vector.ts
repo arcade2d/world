@@ -1,13 +1,18 @@
 export type VectorTuple = [number, number];
 
+export type ImmutableVectorPrimitive = {
+  readonly x: number;
+  readonly y: number;
+};
+
 export interface VectorPrimitive {
   /**
-   * The x value of this vector.
+   * The horizontal value of this vector.
    */
   x: number;
 
   /**
-   * The y value of this vector.
+   * The vertical value of this vector.
    */
   y: number;
 }
@@ -79,41 +84,61 @@ export class Vector implements VectorPrimitive {
   }
 
   /**
-   * Creates a new vector of 0, -1.
+   * Creates a new vector of `0,-1`, representing an "upward facing" magnitude.
    */
   public static up(): Vector {
     return new Vector(0, -1);
   }
 
   /**
-   * Creates a new vector of 0, 1.
+   * Creates a new vector of `0,1`, representing a "downward facing" magnitude.
    */
   public static down(): Vector {
     return new Vector(0, 1);
   }
 
   /**
-   * Creates a new vector of -1, 0.
+   * Creates a new vector of `-1,0`, representing a "left facing" magnitude.
    */
   public static left(): Vector {
     return new Vector(-1, 0);
   }
 
   /**
-   * Creates a new vector of 1, 0.
+   * Creates a new vector of `1,0`, representing a "right facing" magnitude.
    */
   public static right(): Vector {
     return new Vector(1, 0);
   }
 
-  constructor(public x: number = 0, public y: number = 0) {}
+  /**
+   * Creates a new vector where the `x` and `y` values indicate a direction
+   * specified by input radians, starting from `1,0`.
+   *
+   * @param radians The angle in radians.
+   */
+  public static diagonal(radians: number): Vector {
+    return new Vector(Math.cos(radians), Math.sin(radians));
+  }
+
+  private _x: number = 0;
+  private _y: number = 0;
+
+  constructor(x: number = 0, y: number = 0) {
+    this.x = x;
+    this.y = y;
+  }
+
+  public toString(): string {
+    return `Vector(${this._x}, ${this._y})`;
+  }
 
   /**
    * Creates and returns a new vector where `x` and `y` are equivalent to this
    * origin vector.
    */
   public clone(): Vector {
-    return new Vector(this.x, this.y);
+    return new Vector(this._x, this._y);
   }
 
   /**
@@ -176,8 +201,8 @@ export class Vector implements VectorPrimitive {
   ): number {
     const [x, y] = normalizeVectorArgs(a, b);
 
-    const dx = x - this.x;
-    const dy = y - this.y;
+    const dx = x - this._x;
+    const dy = y - this._y;
 
     return Math.sqrt(dx ** 2 + dy ** 2);
   }
@@ -211,8 +236,8 @@ export class Vector implements VectorPrimitive {
   ): number {
     const [x, y] = normalizeVectorArgs(a, b);
 
-    const dx = x - this.x;
-    const dy = y - this.y;
+    const dx = x - this._x;
+    const dy = y - this._y;
 
     return Math.atan2(dy, dx);
   }
@@ -221,7 +246,7 @@ export class Vector implements VectorPrimitive {
    * Returns a representation of this vector as a tuple of `[x, y]`.
    */
   public toTuple(): VectorTuple {
-    return [this.x, this.y];
+    return [this._x, this._y];
   }
 
   /**
@@ -229,7 +254,28 @@ export class Vector implements VectorPrimitive {
    * `{ x, y }`.
    */
   public toPrimitive(): VectorPrimitive {
-    return { x: this.x, y: this.y };
+    return { x: this._x, y: this._y };
+  }
+
+  /**
+   * Returns a readonly representation of this vector as a primitive object of
+   * `{ x, y }`;
+   */
+  public toImmutablePrimitive(): ImmutableVectorPrimitive {
+    const value = {};
+
+    Object.defineProperties(value, {
+      x: {
+        value: this._x,
+        writable: false,
+      },
+      y: {
+        value: this._y,
+        writable: false,
+      },
+    });
+
+    return value as ImmutableVectorPrimitive;
   }
 
   /**
@@ -260,7 +306,7 @@ export class Vector implements VectorPrimitive {
   ): boolean {
     const [x, y] = normalizeVectorArgs(a, b);
 
-    return x === this.x && y === this.y;
+    return x === this._x && y === this._y;
   }
 
   /**
@@ -270,7 +316,7 @@ export class Vector implements VectorPrimitive {
    * @param value The value to multiply x and y by.
    */
   public multiply(value: number): Vector {
-    return new Vector(this.x * value, this.y * value);
+    return new Vector(this._x * value, this._y * value);
   }
 
   /**
@@ -280,21 +326,61 @@ export class Vector implements VectorPrimitive {
    * @param value The amount to divide by.
    */
   public divide(value: number): Vector {
-    return new Vector(this.x / value, this.y / value);
+    return new Vector(this._x / value, this._y / value);
   }
 
+  /**
+   * Creates a new vector where `x` and `y` are increased by the input values.
+   *
+   * @param x The input x value.
+   * @param y The input y value.
+   */
   public add(x: number, y: number): Vector;
+
+  /**
+   * Creates a new vector where `x` and `y` are increased by the respective
+   * values in the input tuple.
+   *
+   * @param tuple The input tuple.
+   */
   public add(tuple: VectorTuple): Vector;
+
+  /**
+   * Creates a new vector where `x` and `y` are increased by the respective
+   * values in the input vector.
+   *
+   * @param primitive The input vector.
+   */
   public add(primitive: VectorPrimitive): Vector;
 
   public add(a: VectorPrimitive | VectorTuple | number, b?: number): Vector {
     const [x, y] = normalizeVectorArgs(a, b);
 
-    return new Vector(this.x + x, this.y + y);
+    return new Vector(this._x + x, this._y + y);
   }
 
+  /**
+   * Creates a new vector where `x` and `y` are decreased by the input values.
+   *
+   * @param x The x value.
+   * @param y The y value.
+   */
   public subtract(x: number, y: number): Vector;
+
+  /**
+   * Creates a new vector where the `x` and `y` are decreased by the respective
+   * values in the input tuple.
+   *
+   * @param tuple The input tuple.
+   */
   public subtract(tuple: VectorTuple): Vector;
+
+  /**
+   * Creates a new vector where the `x` and `y` are decreased by the respective
+   * values in the input vector.
+   *
+   * @param primitive The input vector.
+   */
   public subtract(primitive: VectorPrimitive): Vector;
 
   public subtract(
@@ -303,11 +389,41 @@ export class Vector implements VectorPrimitive {
   ): Vector {
     const [x, y] = normalizeVectorArgs(a, b);
 
-    return new Vector(this.x - x, this.y - y);
+    return new Vector(this._x - x, this._y - y);
   }
 
+  /**
+   * Creates a new vector where the `x` and `y` are interpolated by `fraction`
+   * between this vector and the target `x` and `y` values.
+   *
+   * @param x The target x value.
+   * @param y The target y value.
+   * @param fraction The fraction of distance that should be interpolated. For
+   * example, 0.5 would yield a new vector that is half way between this vector
+   * and the target.
+   */
   public interpolate(x: number, y: number, fraction: number): Vector;
+
+  /**
+   * Creates a new vector where the `x` and `y` are interpolated by `fraction`
+   * between this vector and the respective values in the target tuple.
+   *
+   * @param tuple The target tuple.
+   * @param fraction The fraction of distance that should be interpolated. For
+   * example, 0.5 would yield a new vector that is half way between this vector
+   * and the target.
+   */
   public interpolate(tuple: VectorTuple, fraction: number): Vector;
+
+  /**
+   * Creates a new vector where the `x` and `y` are interpolated by `fraction`
+   * between this vector and the respective values in the target vector.
+   *
+   * @param primitive The target vector.
+   * @param fraction The fraction of distance that should be interpolated. For
+   * example, 0.5 would yield a new vector that is half way between this vector
+   * and the target.
+   */
   public interpolate(primitive: VectorPrimitive, fraction: number): Vector;
 
   public interpolate(
@@ -322,8 +438,57 @@ export class Vector implements VectorPrimitive {
     const distance = this.distanceTo(x, y) * fraction;
 
     return new Vector(
-      this.x + Math.cos(angle) * distance,
-      this.y + Math.sin(angle) * distance,
+      this._x + Math.cos(angle) * distance,
+      this._y + Math.sin(angle) * distance,
+    );
+  }
+
+  /**
+   * Creates a new vector where the `x` and `y` values are altered by `distance`
+   * along the angle between this vector and the target `x` and `y` values.
+   *
+   * @param x The target x value.
+   * @param y The target y value.
+   * @param distance The distance to move along the line between this vector
+   * and the target.
+   */
+  public moveToward(x: number, y: number, distance: number): Vector;
+
+  /**
+   * Creates a new vector where the `x` and `y` values are altered by `distance`
+   * along the angle between this vector and the respective values within the
+   * target tuple.
+   *
+   * @param tuple The target tuple.
+   * @param distance The distance to move along the line between this vector
+   * and the target.
+   */
+  public moveToward(tuple: VectorTuple, distance: number): Vector;
+
+  /**
+   * Creates a new vector where the `x` and `y` values are altered by `distance`
+   * along the angle between this vector and the respective values within the
+   * target vector.
+   *
+   * @param primitive The target vector.
+   * @param distance The distance to move along the line between this vector
+   * and the target.
+   */
+  public moveToward(primitive: VectorPrimitive, distance: number): Vector;
+
+  public moveToward(
+    a: VectorPrimitive | VectorTuple | number,
+    b: number,
+    c?: number,
+  ): Vector {
+    const [x, y] = normalizeVectorArgs(a, b);
+
+    const distance = c ?? b;
+    const angle = this.angleTo(x, y);
+
+    return new Vector(
+      this._x + Math.cos(angle) * distance,
+      this._y + Math.sin(angle),
     );
   }
 
@@ -331,13 +496,29 @@ export class Vector implements VectorPrimitive {
    * Determine the magnitude or length of this vector.
    */
   public get magnitude(): number {
-    return Math.sqrt(this.x ** 2 + this.y ** 2);
+    return Math.sqrt(this._x ** 2 + this._y ** 2);
   }
 
   /**
    * Determine the angle of this vector in radians.
    */
   public get angle(): number {
-    return Math.atan2(this.y, this.x);
+    return Math.atan2(this._y, this._x);
+  }
+
+  public get x(): number {
+    return this._x;
+  }
+
+  public set x(value: number) {
+    this._x = Number.isFinite(value) ? value : this._x;
+  }
+
+  public get y(): number {
+    return this._y;
+  }
+
+  public set y(value: number) {
+    this._y = Number.isFinite(value) ? value : this._y;
   }
 }
