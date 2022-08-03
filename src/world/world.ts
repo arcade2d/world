@@ -2,7 +2,7 @@ import { Vector } from '..';
 import { StepInfo } from '../types';
 import { WorldQuery } from './query/worldQuery';
 import { WorldCamera } from './worldCamera';
-import { AbstractWorldObject } from './worldObject';
+import { WorldObject } from './worldObject';
 import { WorldObjectRef } from './worldObjectRef';
 
 export type WorldOptions = {
@@ -10,43 +10,31 @@ export type WorldOptions = {
    * Handler to trigger when there is an error adding a `WorldObject` to the
    * world.
    */
-  readonly onAddErrorHandler: (
-    object: AbstractWorldObject,
-    error: Error,
-  ) => void;
+  readonly onAddErrorHandler: (object: WorldObject, error: Error) => void;
 
   /**
    * Handler to trigger when there is an error removing a `WorldObject` from the
    * world.
    */
-  readonly onRemoveErrorHandler: (
-    object: AbstractWorldObject,
-    error: Error,
-  ) => void;
-  readonly onPurgeErrorHandler: (
-    object: AbstractWorldObject,
-    error: Error,
-  ) => void;
-  readonly onStepErrorHandler: (
-    object: AbstractWorldObject,
-    error: Error,
-  ) => void;
+  readonly onRemoveErrorHandler: (object: WorldObject, error: Error) => void;
+  readonly onPurgeErrorHandler: (object: WorldObject, error: Error) => void;
+  readonly onStepErrorHandler: (object: WorldObject, error: Error) => void;
 };
 
 const defaultOptionsFactory = (): WorldOptions => ({
-  onAddErrorHandler: (object: AbstractWorldObject, error: Error) =>
+  onAddErrorHandler: (object: WorldObject, error: Error) =>
     console.error(
       `Failed to call onAdd() hook for ${object}: ${error.message}`,
     ),
-  onRemoveErrorHandler: (object: AbstractWorldObject, error: Error) =>
+  onRemoveErrorHandler: (object: WorldObject, error: Error) =>
     console.error(
       `Failed to call onRemove() hook for ${object}: ${error.message}`,
     ),
-  onPurgeErrorHandler: (object: AbstractWorldObject, error: Error) =>
+  onPurgeErrorHandler: (object: WorldObject, error: Error) =>
     console.error(
       `Failed to call onPurge() hook for ${object}: ${error.message}`,
     ),
-  onStepErrorHandler: (object: AbstractWorldObject, error: Error) =>
+  onStepErrorHandler: (object: WorldObject, error: Error) =>
     console.error(`Failed to call step() hook for ${object}: ${error.message}`),
 });
 
@@ -57,10 +45,11 @@ export class World {
   private lastStep?: number;
 
   private lastId: number = 0;
+  private objects: readonly WorldObject[] = [];
 
   private readonly options: WorldOptions;
 
-  private readonly objects: Map<number, AbstractWorldObject> = new Map();
+  private readonly refs: Map<number, WorldObject> = new Map();
   private readonly removed: Set<number> = new Set();
 
   public readonly camera: WorldCamera;
@@ -79,11 +68,12 @@ export class World {
    *
    * @param object The target object.
    */
-  public add<T extends AbstractWorldObject>(object: T, position?: Vector): T {
+  public add<T extends WorldObject>(object: T, position?: Vector): T {
     if (!object.world) {
       const id = this.getNextId();
 
-      this.objects.set(id, object);
+      this.refs.set(id, object);
+      this.objects = Array.from(this.refs.values());
 
       position && object.position.set(position);
 
@@ -104,7 +94,7 @@ export class World {
    *
    * @param object The target object.
    */
-  public remove(object: AbstractWorldObject): void {
+  public remove(object: WorldObject): void {
     if (object.world === this) {
       this.removed.add(object.id);
 
@@ -124,7 +114,7 @@ export class World {
    *
    * @param object The target object.
    */
-  public willPurge(object: AbstractWorldObject): boolean {
+  public willPurge(object: WorldObject): boolean {
     return this.removed.has(object.id);
   }
 
@@ -133,8 +123,8 @@ export class World {
    *
    * @param object The target object.
    */
-  public contains(object: AbstractWorldObject): boolean {
-    return this.objects.get(object.id) === object;
+  public contains(object: WorldObject): boolean {
+    return this.refs.get(object.id) === object;
   }
 
   /**
@@ -142,10 +132,10 @@ export class World {
    */
   public purge(): void {
     for (const id of this.removed) {
-      const object = this.objects.get(id);
+      const object = this.refs.get(id);
 
       if (object) {
-        this.objects.delete(id);
+        this.refs.delete(id);
 
         try {
           object.onPurge(this);
@@ -154,6 +144,8 @@ export class World {
         }
       }
     }
+
+    this.objects = Array.from(this.refs.values());
 
     this.removed.clear();
   }
@@ -179,9 +171,9 @@ export class World {
     };
 
     // Update all objects that belong to this world.
-    for (const [_, object] of this.objects) {
+    for (const object of this.objects) {
       try {
-        object.step(this, info);
+        object.__step(this, info);
       } catch (error: any) {
         this.options.onStepErrorHandler(object, error);
       }
@@ -200,36 +192,33 @@ export class World {
   /**
    * Produces an array of all the objects currently in this world.
    */
-  public getObjects(): readonly AbstractWorldObject[] {
-    return Array.from(this.objects.values());
+  public getObjects(): readonly WorldObject[] {
+    return Array.from(this.refs.values());
   }
 
   /**
-   * Creates a reference to an object within this world. The reference will be
-   * allocated a unique ID provided by this world and access to the target. If
-   * the target is removed from this world, the target through that reference
-   * will yield `null`, which makes this a useful way to safely keep references
-   * to objects that *must* exist within the world to be acted on.
+   * Returns a reference to an object within this world. If the target is
+   * removed from this world, the target through that reference will yield
+   * `null`, which makes this a useful way to safely keep references to objects
+   * that *must* exist within the world to be acted on.
    *
    * @param target The target object.
    */
-  public createRef<T extends AbstractWorldObject>(
-    target: T,
-  ): WorldObjectRef<T> {
+  public getRef<T extends WorldObject>(target: T): WorldObjectRef<T> {
     if (target.world !== this) {
       throw new Error(
         `Cannot create ref for object that doesn't belong to this world.`,
       );
     }
 
-    return new WorldObjectRef(this.objects, this, target.id);
+    return new WorldObjectRef(this.refs, this, target.id);
   }
 
   /**
    * Prepares a new query against this world.
    */
   public query(): WorldQuery {
-    return new WorldQuery(this, this.objects);
+    return new WorldQuery(this, this.refs);
   }
 
   /**

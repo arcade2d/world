@@ -1,4 +1,3 @@
-export * from './decorators/worldObjectDecorator';
 export * from './geom/vector';
 export * from './types';
 export * from './world/query/constraints/tagConstraint';
@@ -7,4 +6,5 @@ export * from './world/query/worldQuery';
 export * from './world/world';
 export * from './world/worldCamera';
 export * from './world/worldObject';
+export * from './world/worldObjectComponent';
 export * from './world/worldObjectRef';

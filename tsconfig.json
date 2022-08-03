@@ -13,9 +13,7 @@
     "noImplicitAny": true,
     "skipLibCheck": false,
     "strict": true,
-    "stripInternal": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "stripInternal": true
   },
   "include": [
     "src"

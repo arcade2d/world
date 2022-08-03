@@ -1,11 +1,9 @@
 import { World } from './world';
-import { AbstractWorldObject } from './worldObject';
+import { WorldObject } from './worldObject';
 
-export class WorldObjectRef<
-  T extends AbstractWorldObject = AbstractWorldObject,
-> {
+export class WorldObjectRef<T extends WorldObject = WorldObject> {
   constructor(
-    private readonly objects: Map<number, AbstractWorldObject>,
+    private readonly objects: Map<number, WorldObject>,
     public readonly world: World,
     public readonly id: number,
   ) {}

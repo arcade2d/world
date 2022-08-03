@@ -1,12 +1,17 @@
-import { AbstractWorldObject, Vector } from '..';
-import { WorldObject } from '../decorators/worldObjectDecorator';
+import { Vector, WorldObject } from '..';
 import { World } from './world';
 
-@WorldObject({ queryable: true })
-class TestWorldObject extends AbstractWorldObject {}
+class TestWorldObject extends WorldObject {
+  constructor() {
+    super({ queryable: true });
+  }
+}
 
-@WorldObject({ queryable: true })
-class AnotherTestWorldObject extends AbstractWorldObject {}
+class AnotherTestWorldObject extends WorldObject {
+  constructor() {
+    super({ queryable: true });
+  }
+}
 
 describe('World', () => {
   let world = {} as World;
@@ -114,10 +119,10 @@ describe('World', () => {
     });
   });
 
-  describe('createRef', () => {
+  describe('getRef', () => {
     test('It should provide a reference object pointing to the target.', () => {
       const object = world.add(new TestWorldObject());
-      const ref = world.createRef(object);
+      const ref = world.getRef(object);
 
       expect(ref.id).toBe(object.id);
       expect(ref.target).toBe(object);
@@ -126,8 +131,8 @@ describe('World', () => {
     test('It should return a reference with the same ID when called multiple times for the same target.', () => {
       const object = world.add(new TestWorldObject());
 
-      const ref1 = world.createRef(object);
-      const ref2 = world.createRef(object);
+      const ref1 = world.getRef(object);
+      const ref2 = world.getRef(object);
 
       expect(ref1.id).toBe(ref2.id);
     });
@@ -136,8 +141,8 @@ describe('World', () => {
       const object1 = world.add(new TestWorldObject());
       const object2 = world.add(new TestWorldObject());
 
-      const ref1 = world.createRef(object1);
-      const ref2 = world.createRef(object2);
+      const ref1 = world.getRef(object1);
+      const ref2 = world.getRef(object2);
 
       expect(ref1.id).toBe(object1.id);
       expect(ref1.target).toBe(object1);
@@ -148,7 +153,7 @@ describe('World', () => {
     test('It should throw when trying to create a ref for an object that is not within the world.', () => {
       const object = new TestWorldObject();
 
-      expect(() => world.createRef(object)).toThrow();
+      expect(() => world.getRef(object)).toThrow();
     });
   });
 });

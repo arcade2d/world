@@ -1,7 +1,7 @@
-import { AbstractWorldObject } from '../../worldObject';
+import { WorldObject } from '../../worldObject';
 import { WorldQueryConstraint } from '../worldQuery';
 
 export const typeConstraintFactory =
-  (type: new () => AbstractWorldObject): WorldQueryConstraint =>
-  (object: AbstractWorldObject) =>
+  (type: new () => WorldObject): WorldQueryConstraint =>
+  (object: WorldObject) =>
     object instanceof type;

@@ -23,19 +23,17 @@ $ yarn add @arcade2d/world
 ## Usage Example
 
 ```typescript
-import {
-  World,
-  AbstractWorldObject,
-  WorldObject,
-  Vector,
-} from '@arcade2d/world';
+import { World, WorldObject, Vector } from '@arcade2d/world';
 
 // Create a new type of WorldObject.
-@WorldObject({
-  tags: ['example'],
-  queryable: true,
-})
-class MyObject extends AbstractWorldObject {}
+class MyObject extends WorldObject {
+  constructor() {
+    super({
+      queryable: true,
+      tags: ['example', 'my-object'],
+    });
+  }
+}
 
 // Create the World.
 const world = new World();
