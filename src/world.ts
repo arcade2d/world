@@ -1,28 +1,38 @@
 import { Vector } from '.';
 import { StepInfo } from './types';
+import { WorldCamera } from './worldCamera';
 import { WorldObject } from './worldObject';
 
 export type WorldOptions = {
-  readonly onAddError: (object: WorldObject, error: Error) => void;
-  readonly onRemoveError: (object: WorldObject, error: Error) => void;
-  readonly onPurgeError: (object: WorldObject, error: Error) => void;
-  readonly onStepError: (object: WorldObject, error: Error) => void;
+  /**
+   * Handler to trigger when there is an error adding a `WorldObject` to the
+   * world.
+   */
+  readonly onAddErrorHandler: (object: WorldObject, error: Error) => void;
+
+  /**
+   * Handler to trigger when there is an error removing a `WorldObject` from the
+   * world.
+   */
+  readonly onRemoveErrorHandler: (object: WorldObject, error: Error) => void;
+  readonly onPurgeErrorHandler: (object: WorldObject, error: Error) => void;
+  readonly onStepErrorHandler: (object: WorldObject, error: Error) => void;
 };
 
 const defaultOptionsFactory = (): WorldOptions => ({
-  onAddError: (object: WorldObject, error: Error) =>
+  onAddErrorHandler: (object: WorldObject, error: Error) =>
     console.error(
       `Failed to call onAdd() hook for ${object}: ${error.message}`,
     ),
-  onRemoveError: (object: WorldObject, error: Error) =>
+  onRemoveErrorHandler: (object: WorldObject, error: Error) =>
     console.error(
       `Failed to call onRemove() hook for ${object}: ${error.message}`,
     ),
-  onPurgeError: (object: WorldObject, error: Error) =>
+  onPurgeErrorHandler: (object: WorldObject, error: Error) =>
     console.error(
       `Failed to call onPurge() hook for ${object}: ${error.message}`,
     ),
-  onStepError: (object: WorldObject, error: Error) =>
+  onStepErrorHandler: (object: WorldObject, error: Error) =>
     console.error(`Failed to call step() hook for ${object}: ${error.message}`),
 });
 
@@ -36,6 +46,8 @@ export class World {
   private readonly objects: Set<WorldObject>;
   private readonly removed: Set<WorldObject>;
 
+  public readonly camera: WorldCamera;
+
   constructor(options?: Partial<WorldOptions>) {
     this.options = {
       ...defaultOptionsFactory(),
@@ -44,6 +56,7 @@ export class World {
 
     this.objects = new Set();
     this.removed = new Set();
+    this.camera = new WorldCamera();
   }
 
   /**
@@ -60,7 +73,7 @@ export class World {
       try {
         object.onAdd(this);
       } catch (error: any) {
-        this.options.onAddError(object, error);
+        this.options.onAddErrorHandler(object, error);
       }
     }
 
@@ -80,7 +93,7 @@ export class World {
       try {
         object.onRemove(this);
       } catch (error: any) {
-        this.options.onRemoveError(object, error);
+        this.options.onRemoveErrorHandler(object, error);
       }
     }
   }
@@ -115,7 +128,7 @@ export class World {
         try {
           object.onPurge(this);
         } catch (error: any) {
-          this.options.onPurgeError(object, error);
+          this.options.onPurgeErrorHandler(object, error);
         }
       }
     }
@@ -148,7 +161,7 @@ export class World {
       try {
         object.step(this, info);
       } catch (error: any) {
-        this.options.onStepError(object, error);
+        this.options.onStepErrorHandler(object, error);
       }
     }
 

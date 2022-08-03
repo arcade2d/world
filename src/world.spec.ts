@@ -1,6 +1,8 @@
 import { Vector, WorldObject } from '.';
 import { World } from './world';
 
+class TestWorldObject extends WorldObject {}
+
 describe('World', () => {
   let world = {} as World;
 
@@ -32,8 +34,8 @@ describe('World', () => {
     });
 
     test('It should call step() on all included world objects using the generated StepInfo.', () => {
-      const objectA = world.add(new WorldObject());
-      const objectB = world.add(new WorldObject());
+      const objectA = world.add(new TestWorldObject());
+      const objectB = world.add(new TestWorldObject());
 
       jest.spyOn(objectA, 'step');
       jest.spyOn(objectB, 'step');
@@ -46,10 +48,10 @@ describe('World', () => {
   });
 
   describe('add', () => {
-    let object = {} as WorldObject;
+    let object = {} as TestWorldObject;
 
     beforeEach(() => {
-      object = new WorldObject();
+      object = new TestWorldObject();
 
       jest.spyOn(object, 'onAdd');
     });

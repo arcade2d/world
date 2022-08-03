@@ -2,7 +2,7 @@ import { Vector } from './geom/vector';
 import { StepInfo } from './types';
 import { World } from './world';
 
-export class WorldObject {
+export abstract class WorldObject {
   public readonly position: Vector;
 
   constructor() {

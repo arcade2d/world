@@ -11,8 +11,10 @@ build:
     paths:
       - lib
   cache:
-    key: $CI_COMMIT_REF_NAME
-    policy: push
+    key:
+      files:
+        - yarn.lock
+    policy: pull-push
     paths:
       - node_modules
   script:
@@ -23,7 +25,9 @@ test:
   stage: test
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   cache:
-    key: $CI_COMMIT_REF_NAME
+    key:
+      files:
+        - yarn.lock
     policy: pull
     paths:
       - node_modules
