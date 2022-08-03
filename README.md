@@ -23,10 +23,19 @@ $ yarn add @arcade2d/world
 ## Usage Example
 
 ```typescript
-import { World, WorldObject, Vector } from '@arcade2d/world';
+import {
+  World,
+  AbstractWorldObject,
+  WorldObject,
+  Vector,
+} from '@arcade2d/world';
 
 // Create a new type of WorldObject.
-class MyObject extends WorldObject {}
+@WorldObject({
+  tags: ['example'],
+  queryable: true,
+})
+class MyObject extends AbstractWorldObject {}
 
 // Create the World.
 const world = new World();
@@ -37,6 +46,9 @@ const objectB = world.add(new MyObject(), Vector.from(200, 250));
 
 // Example of measuring distance between two objects within the world.
 console.log(objectA.position.distanceTo(objectB.position));
+
+// Query for objects.
+console.log(world.query().types(MyObject).first());
 
 // Call step() on the world every 16ms.
 setInterval(() => world.step(), 16);
