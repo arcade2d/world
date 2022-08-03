@@ -189,4 +189,10 @@ export class World {
   public getRemovedObjects(): readonly WorldObject[] {
     return Array.from(this.removed);
   }
+
+  public find<T extends WorldObject>(type: new () => T): readonly T[] {
+    return this.getObjects().filter(
+      (object) => object instanceof type,
+    ) as unknown as readonly T[];
+  }
 }

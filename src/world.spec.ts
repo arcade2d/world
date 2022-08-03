@@ -2,6 +2,7 @@ import { Vector, WorldObject } from '.';
 import { World } from './world';
 
 class TestWorldObject extends WorldObject {}
+class AnotherTestWorldObject extends WorldObject {}
 
 describe('World', () => {
   let world = {} as World;
@@ -78,6 +79,21 @@ describe('World', () => {
       expect(object.onAdd).toBeCalledTimes(1);
       expect(object.position.x).toEqual(10);
       expect(object.position.y).toEqual(10);
+    });
+  });
+
+  describe('find', () => {
+    test('It should find objects matching the input type.', () => {
+      const object1 = world.add(new TestWorldObject());
+      const object2 = world.add(new AnotherTestWorldObject());
+
+      const results1 = world.find(TestWorldObject);
+      const results2 = world.find(AnotherTestWorldObject);
+
+      expect(results1.length).toBe(1);
+      expect(results1[0]).toBe(object1);
+      expect(results2.length).toBe(1);
+      expect(results2[0]).toBe(object2);
     });
   });
 });
