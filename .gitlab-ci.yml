@@ -44,7 +44,6 @@ publish:
     - tags
 
 pages:
-  image: alpine
   stage: publish
   cache:
     key:
