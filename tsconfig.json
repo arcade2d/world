@@ -6,7 +6,7 @@
     ],
     "target": "ES6",
     "outDir": "./lib",
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "declaration": true,

@@ -19,35 +19,3 @@ It covers things like:
 ```bash
 $ yarn add @arcade2d/world
 ```
-
-## Usage Example
-
-```typescript
-import { World, WorldObject, Vector } from '@arcade2d/world';
-
-// Create a new type of WorldObject.
-class MyObject extends WorldObject {
-  constructor() {
-    super({
-      queryable: true,
-      tags: ['example', 'my-object'],
-    });
-  }
-}
-
-// Create the World.
-const world = new World();
-
-// Add some objects.
-const objectA = world.add(new MyObject(), Vector.from(100, 100));
-const objectB = world.add(new MyObject(), Vector.from(200, 250));
-
-// Example of measuring distance between two objects within the world.
-console.log(objectA.position.distanceTo(objectB.position));
-
-// Query for objects.
-console.log(world.query().types(MyObject).first());
-
-// Call step() on the world every 16ms.
-setInterval(() => world.step(), 16);
-```

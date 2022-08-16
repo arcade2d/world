@@ -84,6 +84,13 @@ export class Vector implements VectorPrimitive {
   }
 
   /**
+   * Creates a new Vector at `0,0`.
+   */
+  public static zero(): Vector {
+    return new Vector(0, 0);
+  }
+
+  /**
    * Creates a new vector of `0,-1`, representing an "upward facing" magnitude.
    */
   public static up(): Vector {
@@ -117,7 +124,7 @@ export class Vector implements VectorPrimitive {
    *
    * @param radians The angle in radians.
    */
-  public static diagonal(radians: number): Vector {
+  public static angular(radians: number): Vector {
     return new Vector(Math.cos(radians), Math.sin(radians));
   }
 
@@ -130,7 +137,7 @@ export class Vector implements VectorPrimitive {
   }
 
   public toString(): string {
-    return `Vector(${this._x}, ${this._y})`;
+    return `Vector(${this._x},${this._y})`;
   }
 
   /**
@@ -283,28 +290,46 @@ export class Vector implements VectorPrimitive {
    *
    * @param x The x value.
    * @param y The y value.
+   * @param precision Precision to check equality. For example, a precision of
+   * 0.5 would mean vectors at 0,1 and 0,1.4 would be considered equal.
    */
-  public equals(x: number, y: number): boolean;
+  public equals(x: number, y: number, precision?: number): boolean;
 
   /**
    * Determine whether this vector matches the input tuple `[x, y]`.
    *
    * @param tuple The target tuple.
+   * @param precision Precision to check equality. For example, a precision of
+   * 0.5 would mean vectors at 0,1 and 0,1.4 would be considered equal.
    */
-  public equals(tuple: VectorTuple): boolean;
+  public equals(tuple: VectorTuple, precision?: number): boolean;
 
   /**
    * Determine whether this vector matches the target vector.
    *
    * @param primitive The target vector.
+   * @param precision Precision to check equality. For example, a precision of
+   * 0.5 would mean vectors at 0,1 and 0,1.4 would be considered equal.
    */
-  public equals(primitive: VectorPrimitive): boolean;
+  public equals(primitive: VectorPrimitive, precision?: number): boolean;
 
   public equals(
     a: VectorPrimitive | VectorTuple | number,
     b?: number,
+    c?: number,
   ): boolean {
     const [x, y] = normalizeVectorArgs(a, b);
+
+    const precision = c ?? b;
+
+    if (precision) {
+      const tx = Math.floor(this.x / precision) * precision;
+      const ty = Math.floor(this.y / precision) * precision;
+      const dx = Math.floor(x / precision) * precision;
+      const dy = Math.floor(y / precision) * precision;
+
+      return tx === dx && ty === dy;
+    }
 
     return x === this._x && y === this._y;
   }
@@ -493,9 +518,35 @@ export class Vector implements VectorPrimitive {
   }
 
   /**
+   * Creates a new Vector placed along the angle of this vector at the specified
+   * distance. For example, given a vector 1,0 which is facing directly to the
+   * right, `traverse(5)` would produce a new vector 6,0.
+   *
+   * @param distance The distance to traverse along the angle implied by this
+   * vector.
+   */
+  public traverse(distance: number): Vector {
+    return new Vector(
+      this.x + Math.cos(this.angle) * distance,
+      this.y + Math.sin(this.angle) * distance,
+    );
+  }
+
+  /**
+   * Creates a new vector where the current position is "snapped" to the nearest
+   * cell corner in an abstract grid as defined by the input `x` and `y` values.
+   *
+   * @param x The x spacing between the grid columns.
+   * @param y The y spacing between the grid rows.
+   */
+  public snap(x: number, y: number): Vector {
+    return new Vector(Math.round(this.x / x) * x, Math.round(this.y / y) * y);
+  }
+
+  /**
    * Determine the magnitude or length of this vector.
    */
-  public get magnitude(): number {
+  public get length(): number {
     return Math.sqrt(this._x ** 2 + this._y ** 2);
   }
 
