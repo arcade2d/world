@@ -29,5 +29,5 @@ export type ComponentFactory<T> = (owner: T) => readonly Component<T>[];
 
 export type ComponentConstructor<T = any> = new (
   owner: T,
-  ...args: readonly unknown[]
+  ...args: readonly any[]
 ) => Component<T>;

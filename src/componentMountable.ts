@@ -15,17 +15,9 @@ export class ComponentMountable<T> {
    * @param type The component type to fetch.
    */
   public getComponent<C extends Component<T>>(
-    type: new (owner: T, ...args: readonly unknown[]) => C,
+    type: new (owner: T, ...args: readonly any[]) => C | null,
   ): C {
-    const component = this.components.get(type);
-
-    if (!component) {
-      throw new Error(
-        `Provider ${this} does not have a component of type ${type.name}.`,
-      );
-    }
-
-    return component as unknown as C;
+    return (this.components.get(type) as unknown as C) ?? null;
   }
 
   /**
