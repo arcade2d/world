@@ -11,6 +11,11 @@ export interface Component<T> {
   readonly owner: T;
 
   /**
+   * Called when the owner of the component is ready to set up.
+   */
+  setup?: () => void;
+
+  /**
    * Called when the owner of this components is destroyed.
    */
   destroy?: () => void;
